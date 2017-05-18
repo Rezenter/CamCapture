@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>583</width>
+    <height>522</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="1" colspan="2">
+     <widget class="QPushButton" name="folderButton">
+      <property name="text">
+       <string>set folder</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="5" rowspan="3">
+     <widget class="Line" name="line">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="6" colspan="2">
+     <widget class="QDoubleSpinBox" name="seqBox">
+      <property name="decimals">
+       <number>1</number>
+      </property>
+      <property name="value">
+       <double>1.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="3">
+     <widget class="QSpinBox" name="seriesBox"/>
+    </item>
+    <item row="1" column="9" colspan="2">
+     <widget class="QLabel" name="fpsLabel">
+      <property name="text">
+       <string>fps</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1" colspan="2">
+     <widget class="QLineEdit" name="pathLine">
+      <property name="text">
+       <string>C:/</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0" colspan="2">
+     <widget class="QPushButton" name="connectButton">
+      <property name="text">
+       <string>connect</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="8" rowspan="3">
+     <widget class="Line" name="line_2">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="6" colspan="2">
+     <widget class="QLabel" name="label_6">
+      <property name="text">
+       <string>interval [s]</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2">
+     <widget class="QPushButton" name="shotButton">
+      <property name="text">
+       <string>single shot</string>
+      </property>
+      <property name="checkable">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0" rowspan="2">
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>save to:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="4">
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>shot #</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="6" colspan="2">
+     <widget class="QPushButton" name="seqButton">
+      <property name="text">
+       <string>time sequence</string>
+      </property>
+      <property name="checkable">
+       <bool>false</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="3">
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>series</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="9" colspan="2">
+     <widget class="QLabel" name="label_5">
+      <property name="text">
+       <string>current fps:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="4">
+     <widget class="QSpinBox" name="shotBox"/>
+    </item>
+    <item row="3" column="0" colspan="11">
+     <widget class="QLabel" name="liveLable">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>
