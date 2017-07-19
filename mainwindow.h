@@ -8,6 +8,11 @@
 #include <QPixmap>
 #include <QDateTime>
 #include <limits>
+#include <QThread>
+#include "comchatter.h"
+#include "logger.h"
+#include <QCoreApplication>
+#include <QSettings>
 
 namespace Ui {
 class MainWindow;
@@ -27,6 +32,9 @@ signals:
     void connect();
     void savePath(QString);
     void capture(QString);
+    void comConnect(QString);
+    void close();
+    void send(QString);
 
 private:
     Ui::MainWindow *ui;
@@ -39,6 +47,18 @@ private:
     qint64 prev = std::numeric_limits<qint64>::max();
     QDateTime time;
     QPixmap curr;
+    QString path = QCoreApplication::applicationDirPath();
+    bool opened = false;
+    QThread *comThread;
+    ComChatter *port;
+    Logger *log;
+    QString portName;
+    QSettings *settings;
+    int pos;
+    void setControlsEnabled(bool);
+    int d2s(double);
+    double s2d(int);
+    bool scanning = false;
 
 private slots:
     void liveShot();
@@ -49,6 +69,20 @@ private slots:
     void setPath();
     void sequence();
     void accuire(int, int, char*, int, int);
+
+public slots:
+    void closed();
+    void error(QString);
+    void in(QString);
+    void motConnect();
+    void stopButton();
+    void l();
+    void r();
+    void l10();
+    void r10();
+    void newPos(double);
+    void scan();
+
 };
 
 #endif // MAINWINDOW_H

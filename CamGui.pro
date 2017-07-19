@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
+QT       += core gui serialport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -25,10 +25,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    camcapture.cpp
+    camcapture.cpp \
+    comchatter.cpp \
+    logger.cpp
 
 HEADERS  += mainwindow.h \
-    camcapture.h
+    camcapture.h \
+    comchatter.h \
+    logger.h
 
 FORMS    += mainwindow.ui
 
