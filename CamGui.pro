@@ -66,3 +66,5 @@ PRE_TARGETDEPS += $$PWD/lib/mvDisplay.lib
 
 LIBS += -L$$PWD/lib/ -lmvDeviceManager
 PRE_TARGETDEPS += $$PWD/lib/mvDeviceManager.lib
+
+RC_FILE = CamGui.rc

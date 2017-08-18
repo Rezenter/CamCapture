@@ -59,6 +59,14 @@ private:
     int d2s(double);
     double s2d(int);
     bool scanning = false;
+    double coeff;
+    QString inBuf;
+    void newPos(double);
+    bool seq = false;
+    QFile* out;
+    QTextStream* outStream;
+    QDateTime now;
+    QString lastDir = "";
 
 private slots:
     void liveShot();
@@ -69,6 +77,8 @@ private slots:
     void setPath();
     void sequence();
     void accuire(int, int, char*, int, int);
+    void editing();
+    void edited();
 
 public slots:
     void closed();
@@ -80,9 +90,9 @@ public slots:
     void r();
     void l10();
     void r10();
-    void newPos(double);
     void scan();
-
+    void setPos();
+    void stop();
 };
 
 #endif // MAINWINDOW_H

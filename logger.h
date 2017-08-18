@@ -15,7 +15,6 @@ class Logger : public QObject{
 public:
     Logger(QObject *parent = 0);
     ~Logger();
-    void print(QString data);
 
 private:
     QString filename = QCoreApplication::applicationDirPath() + "/log.txt";
@@ -24,6 +23,7 @@ private:
     QDateTime now;
 
 public slots:
+    void print(QString data);
     void error(QString data);
     void received(QString data);
 

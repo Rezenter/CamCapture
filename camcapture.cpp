@@ -54,7 +54,6 @@ void CamCapture::reqDevList(){
 void CamCapture::disconnect(){
     if(connected){
         curr->close();
-        qDebug() << "disconnected";
         connected = false;
         emit connectionResult(connected);
     }

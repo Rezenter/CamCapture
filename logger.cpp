@@ -5,7 +5,6 @@ Logger::Logger(QObject *parent) : QObject(parent){
     log->open(QIODevice::WriteOnly);
     stream = new QTextStream(log);
     print(now.currentDateTime().toString("ddd MMMM d yyyy"));
-    QDateTime now();
 }
 
 Logger::~Logger(){

@@ -64,6 +64,7 @@ void loop()
       posReport=posMotorEnd;
     }else{ 
       posMotorEnd=posMotor;
+      Serial.println(posMotor);
     }
   }
 //---------------------------------------------

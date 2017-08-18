@@ -8,6 +8,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
     setWindowTitle("Cam & motor control");
     settings = new QSettings(path + "/settings.ini", QSettings::IniFormat);
+    coeff = settings->value("stepsInDegree", 20).toDouble();
     log = new Logger();
     log->print(path);
     comThread = new QThread();
@@ -27,6 +28,7 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(port, SIGNAL(out(QString)), this, SLOT(in(QString)));
     QObject::connect(port, SIGNAL(error(QString)), log, SLOT(error(QString)));
     QObject::connect(port, SIGNAL(out(QString)), log, SLOT(received(QString)));
+    QObject::connect(this, SIGNAL(send(QString)), log, SLOT(print(QString)));
     QObject::connect(ui->connectButton, &QPushButton::pressed, this, &MainWindow::connectPressed);
     QObject::connect(&cc, SIGNAL(connectionResult(bool)), this, SLOT(connectionResult(bool)));
     QObject::connect(this, SIGNAL(connect()), &cc, SLOT(connect()));
@@ -41,6 +43,29 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->seqButton, &QPushButton::pressed, this, &MainWindow::sequence);
     QObject::connect(&cc, SIGNAL(captured(int, int, char*, int, int)), this, SLOT(accuire(int, int, char*, int, int)));
     QObject::connect(ui->motButton, &QPushButton::pressed, this, &MainWindow::motConnect);
+    QObject::connect(ui->lButton, &QPushButton::pressed, this, &MainWindow::l);
+    QObject::connect(ui->rButton, &QPushButton::pressed, this, &MainWindow::r);
+    QObject::connect(ui->l10Button, &QPushButton::pressed, this, &MainWindow::l10);
+    QObject::connect(ui->r10Button, &QPushButton::pressed, this, &MainWindow::r10);
+    QObject::connect(ui->posSpinBox, &QDoubleSpinBox::editingFinished, this, &MainWindow::setPos);
+    QObject::connect(ui->thetaButton, &QPushButton::pressed, this, &MainWindow::scan);
+    QObject::connect(ui->pathLine, &QLineEdit::editingFinished, this, &MainWindow::edited);
+    QObject::connect(ui->seriesBox, &QSpinBox::editingFinished, this, &MainWindow::edited);
+    QObject::connect(ui->shotBox, &QSpinBox::editingFinished, this, &MainWindow::edited);
+    QObject::connect(ui->seqBox, &QDoubleSpinBox::editingFinished, this, &MainWindow::edited);
+    QObject::connect(ui->thetaStepSpinBox, &QDoubleSpinBox::editingFinished, this, &MainWindow::edited);
+    QObject::connect(ui->fromSpinBox, &QDoubleSpinBox::editingFinished, this, &MainWindow::edited);
+    QObject::connect(ui->toSpinBox, &QDoubleSpinBox::editingFinished, this, &MainWindow::edited);
+    QObject::connect(ui->posSpinBox, &QDoubleSpinBox::editingFinished, this, &MainWindow::edited);
+    QObject::connect(ui->pathLine, static_cast<void(QLineEdit::*)(const QString&)>(&QLineEdit::textEdited), this, &MainWindow::editing);
+    QObject::connect(ui->seriesBox, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &MainWindow::editing);
+    QObject::connect(ui->shotBox, static_cast<void(QSpinBox::*)(int)>(&QSpinBox::valueChanged), this, &MainWindow::editing);
+    QObject::connect(ui->seqBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &MainWindow::editing);
+    QObject::connect(ui->thetaStepSpinBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &MainWindow::editing);
+    QObject::connect(ui->fromSpinBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &MainWindow::editing);
+    QObject::connect(ui->toSpinBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &MainWindow::editing);
+    QObject::connect(ui->posSpinBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &MainWindow::editing);
+    QObject::connect(ui->stopButton, &QPushButton::pressed, this, &MainWindow::stop);
     emit savePath(ui->pathLine->text());
     setControlsEnabled(false);
     comThread->start();
@@ -75,12 +100,16 @@ void MainWindow::connectionResult(bool res){
         ui->connectButton->setAutoFillBackground(true);
         ui->connectButton->setPalette(connectPal);
         ui->connectButton->update();
+        if(opened){
+            ui->thetaButton->setEnabled(true);
+        }
     }else{
         live->stop();
         connectPal.setColor(QPalette::Button, QColor(Qt::red));
         ui->connectButton->setAutoFillBackground(true);
         ui->connectButton->setPalette(connectPal);
         ui->connectButton->update();
+        ui->thetaButton->setEnabled(false);
     }
 }
 
@@ -112,6 +141,25 @@ void MainWindow::singleShot(){
 }
 
 QString MainWindow::filename(){
+    QString dir = ui->pathLine->text() + '/' + QString("%1").arg(ui->seriesBox->value(), 2, 10, QChar('0'));
+    if(!QDir(dir).exists() || lastDir != dir){
+        lastDir = dir;
+        QDir().mkdir(dir);
+        out = new QFile(dir + "/info.txt");
+        out->open(QIODevice::WriteOnly);
+        outStream = new QTextStream(out);
+        *outStream << now.currentDateTime().toString("ddd MMMM d yyyy") << " @ " << QString::number(ui->posSpinBox->value()) << "°" << endl;
+    }
+    emit savePath(dir);
+    *outStream << QString("%1").arg(ui->shotBox->value(), 4, 10, QChar('0')) << " " << now.currentDateTime().toString("hh:mm:ss") << " @ " << QString::number(ui->posSpinBox->value()) << "°";
+    if(seq){
+        *outStream << " Time Sequence, time step = " << QString::number(ui->seqBox->value());
+    }else if(scanning){
+        *outStream << " Theta scan, theta step = " << QString::number(ui->thetaStepSpinBox->value());
+    }else{
+        *outStream << " Single shot";
+    }
+    *outStream << endl;
     QString res = QString("%1").arg(ui->seriesBox->value(), 2, 10, QChar('0'));
     res += "_";
     res += QString("%1").arg(ui->shotBox->value(), 4, 10, QChar('0'));
@@ -120,19 +168,23 @@ QString MainWindow::filename(){
 
 void MainWindow::sequence(){
     if(timerOnline){
+        seq = false;
         timer->stop();
         ui->shotButton->setEnabled(true);
         ui->seqBox->setEnabled(true);
         ui->shotBox->setEnabled(true);
         ui->seriesBox->setEnabled(true);
+        ui->thetaButton->setEnabled(true);
         timerOnline = false;
     }else{
         timerOnline = true;
+        seq = true;
         singleShot();
         ui->shotButton->setEnabled(false);
         ui->seqBox->setEnabled(false);
         ui->shotBox->setEnabled(false);
         ui->seriesBox->setEnabled(false);
+        ui->thetaButton->setEnabled(false);
         timer->start(1000*ui->seqBox->value());
     }
 }
@@ -182,6 +234,7 @@ void MainWindow::accuire(int x, int y, char* begin, int pitch, int bitsPerPixel)
             prev = time.currentMSecsSinceEpoch();
             curr.loadFromData(data, "BMP");
             ui->liveLable->setPixmap(curr);
+            ui->radioButton->setChecked(!ui->radioButton->isChecked());
     }
 }
 
@@ -200,14 +253,24 @@ void MainWindow::error(QString data){
 }
 
 void MainWindow::in(QString data){
-    qDebug() << data;
-    data.chop(2);
-    if(data.endsWith("connected", Qt::CaseInsensitive)){
-         opened = true;
-         setControlsEnabled(true);
-    }else{
-        pos = data.toInt();
-        //capture, if needed
+    inBuf += data;
+    if(inBuf.endsWith("\r\n")){
+        inBuf.chop(2);
+        if(inBuf.endsWith("connected", Qt::CaseInsensitive)){
+             opened = true;
+             setControlsEnabled(true);
+             if(!connected){
+                 ui->thetaButton->setEnabled(false);
+             }
+        }else{
+            pos = inBuf.toInt();
+            ui->posSpinBox->setValue(s2d(pos));
+            ui->posSpinBox->setStyleSheet("QDoubleSpinBox { background-color : white; }");
+            if(scanning){
+                scan();
+            }
+        }
+        inBuf = "";
     }
 }
 
@@ -218,7 +281,10 @@ void MainWindow::motConnect(){
         opened = false;
         scanning = false;
     }else{
+        log->print("connecting to " + settings->value("portName", "COM1").toString());
         emit comConnect(settings->value("portName", "COM1").toString());
+        pos = 0;
+        ui->posSpinBox->setValue(0);
     }
 }
 
@@ -231,9 +297,13 @@ void MainWindow::setControlsEnabled(bool b){
     ui->thetaButton->setEnabled(b);
     ui->stopButton->setEnabled(b);
     if(b){
-        ui->motButton->setStyleSheet("QPushButton { background-color : green; color : black; }");
+        ui->motButton->setStyleSheet("QPushButton { background-color : green;}");
     }else{
-        ui->motButton->setStyleSheet("QPushButton { background-color : red; color : black; }");
+        ui->motButton->setStyleSheet("QPushButton { background-color : red;}");
+    }
+    if(scanning){
+        ui->motButton->setStyleSheet("QPushButton { background-color : yellow;}");
+        ui->stopButton->setEnabled(true);
     }
 }
 
@@ -254,27 +324,90 @@ void MainWindow::l10(){
 }
 
 void MainWindow::r10(){
-    emit send(QString::number(d2s(-10)));
+    emit send(QString::number(d2s(10)));
 }
 
 void MainWindow::newPos(double d){
-    emit send(QString::number(d2s(d- pos)));
+    emit send(QString::number(d2s(d) - pos));
+}
+
+void MainWindow::setPos(){
+    newPos(ui->posSpinBox->value());
 }
 
 void MainWindow::scan(){
-    //add scan code
-    if(!scanning){
+    if(!scanning && ui->fromSpinBox->value() != ui->toSpinBox->value()){
         newPos(ui->fromSpinBox->value());
         scanning = true;
-    }else if(false){
-
+        setControlsEnabled(false);
+        ui->seqButton->setEnabled(false);
+    }else{
+        singleShot();
+        if(ui->fromSpinBox->value() < ui->toSpinBox->value()){
+            emit send(QString::number(d2s(ui->thetaStepSpinBox->value())));
+        }else if(ui->fromSpinBox->value() > ui->toSpinBox->value()){
+            emit send(QString::number(d2s(-ui->thetaStepSpinBox->value())));
+        }
+        if(ui->toSpinBox->value() == s2d(pos) ||
+                ((ui->fromSpinBox->value() < ui->toSpinBox->value()) && ui->toSpinBox->value() <= s2d(pos)) ||
+                ((ui->fromSpinBox->value() > ui->toSpinBox->value()) && ui->toSpinBox->value() >= s2d(pos))){
+            singleShot();
+            scanning = false;
+            setControlsEnabled(true);
+            ui->seqButton->setEnabled(true);
+        }
     }
 }
 
 int MainWindow::d2s(double d){
-    return 0; //fix
+    return (int)(d*coeff);
 }
 
 double MainWindow::s2d(int s){
-    return 0; //fix
+    return (double)(s/coeff);
+}
+
+void MainWindow::editing(){
+    QObject* from = sender();
+    if(from == ui->pathLine){
+        ui->pathLine->setStyleSheet("QLineEdit { background-color : yellow; }");
+    }else if(from == ui->seriesBox){
+        ui->seriesBox->setStyleSheet("QSpinBox { background-color : yellow; }");
+    }else if(from == ui->seqBox){
+        ui->seqBox->setStyleSheet("QDoubleSpinBox { background-color : yellow; }");
+    }else if(from == ui->thetaStepSpinBox){
+        ui->thetaStepSpinBox->setStyleSheet("QDoubleSpinBox { background-color : yellow; }");
+    }else if(from == ui->fromSpinBox){
+        ui->fromSpinBox->setStyleSheet("QDoubleSpinBox { background-color : yellow; }");
+    }else if(from == ui->toSpinBox){
+        ui->toSpinBox->setStyleSheet("QDoubleSpinBox { background-color : yellow; }");
+    }else if(from == ui->posSpinBox){
+        ui->posSpinBox->setStyleSheet("QDoubleSpinBox { background-color : yellow; }");
+    }
+}
+
+void MainWindow::edited(){
+    QObject* from = sender();
+    if(from == ui->pathLine){
+        ui->pathLine->setStyleSheet("QLineEdit { background-color : white; }");
+        ui->seriesBox->setValue(0);
+        ui->shotBox->setValue(0);
+    }else if(from == ui->seriesBox){
+        ui->seriesBox->setStyleSheet("QSpinBox { background-color : white; }");
+        ui->shotBox->setValue(0);
+    }else if(from == ui->seqBox){
+        ui->seqBox->setStyleSheet("QDoubleSpinBox { background-color : white; }");
+    }else if(from == ui->thetaStepSpinBox){
+        ui->thetaStepSpinBox->setStyleSheet("QDoubleSpinBox { background-color : white; }");
+    }else if(from == ui->fromSpinBox){
+        ui->fromSpinBox->setStyleSheet("QDoubleSpinBox { background-color : white; }");
+    }else if(from == ui->toSpinBox){
+        ui->toSpinBox->setStyleSheet("QDoubleSpinBox { background-color : white; }");
+    }else if(from == ui->posSpinBox){
+        ui->posSpinBox->setStyleSheet("QDoubleSpinBox { background-color : white; }");
+    }
+}
+
+void MainWindow::stop(){
+    emit send(QString::number(0));
 }
