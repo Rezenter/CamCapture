@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>722</width>
+    <width>756</width>
     <height>597</height>
    </rect>
   </property>
@@ -24,18 +24,14 @@
     </item>
     <item row="0" column="3" colspan="2">
      <widget class="QPushButton" name="shotButton">
+      <property name="toolTip">
+       <string>Make a single shot.</string>
+      </property>
       <property name="text">
        <string>single shot</string>
       </property>
       <property name="checkable">
        <bool>false</bool>
-      </property>
-     </widget>
-    </item>
-    <item row="0" column="0" colspan="2">
-     <widget class="QPushButton" name="connectButton">
-      <property name="text">
-       <string>cam connect</string>
       </property>
      </widget>
     </item>
@@ -54,6 +50,9 @@
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
+      <property name="toolTip">
+       <string>FPS label.</string>
+      </property>
       <property name="text">
        <string>fps</string>
       </property>
@@ -61,6 +60,9 @@
     </item>
     <item row="0" column="6">
      <widget class="QPushButton" name="seqButton">
+      <property name="toolTip">
+       <string>Start time sequence with given interval.</string>
+      </property>
       <property name="text">
        <string>time sequence</string>
       </property>
@@ -71,6 +73,9 @@
     </item>
     <item row="0" column="8" colspan="3">
      <widget class="QPushButton" name="thetaButton">
+      <property name="toolTip">
+       <string>Start scan from &quot;begin angle&quot; to &quot;end angle&quot; with given step.</string>
+      </property>
       <property name="text">
        <string>Theta scan</string>
       </property>
@@ -92,6 +97,9 @@
     </item>
     <item row="1" column="1">
      <widget class="QPushButton" name="folderButton">
+      <property name="toolTip">
+       <string>Save path dialog.</string>
+      </property>
       <property name="text">
        <string>set folder</string>
       </property>
@@ -99,6 +107,9 @@
     </item>
     <item row="1" column="3">
      <widget class="QLabel" name="label_3">
+      <property name="toolTip">
+       <string>Series No.</string>
+      </property>
       <property name="text">
        <string>series</string>
       </property>
@@ -109,6 +120,9 @@
     </item>
     <item row="1" column="4">
      <widget class="QLabel" name="label_4">
+      <property name="toolTip">
+       <string>Shot No.</string>
+      </property>
       <property name="text">
        <string>shot #</string>
       </property>
@@ -119,6 +133,9 @@
     </item>
     <item row="1" column="6">
      <widget class="QLabel" name="label_6">
+      <property name="toolTip">
+       <string>Time sequence interval.</string>
+      </property>
       <property name="text">
        <string>interval [s]</string>
       </property>
@@ -129,6 +146,9 @@
     </item>
     <item row="1" column="8">
      <widget class="QLabel" name="label_2">
+      <property name="toolTip">
+       <string>Step of the scan.</string>
+      </property>
       <property name="text">
        <string>step [°]</string>
       </property>
@@ -139,6 +159,9 @@
     </item>
     <item row="1" column="9" colspan="2">
      <widget class="QDoubleSpinBox" name="thetaStepSpinBox">
+      <property name="toolTip">
+       <string>Step of the scan.</string>
+      </property>
       <property name="minimum">
        <double>0.010000000000000</double>
       </property>
@@ -149,18 +172,28 @@
     </item>
     <item row="2" column="0" colspan="2">
      <widget class="QLineEdit" name="pathLine">
+      <property name="toolTip">
+       <string>Save path editor.</string>
+      </property>
       <property name="text">
        <string>C:/</string>
       </property>
      </widget>
     </item>
     <item row="2" column="3">
-     <widget class="QSpinBox" name="seriesBox"/>
+     <widget class="QSpinBox" name="seriesBox">
+      <property name="toolTip">
+       <string>Series No.</string>
+      </property>
+     </widget>
     </item>
     <item row="2" column="4">
      <widget class="QSpinBox" name="shotBox">
       <property name="enabled">
        <bool>false</bool>
+      </property>
+      <property name="toolTip">
+       <string>Shot No.</string>
       </property>
       <property name="maximum">
        <number>9999</number>
@@ -169,6 +202,9 @@
     </item>
     <item row="2" column="6">
      <widget class="QDoubleSpinBox" name="seqBox">
+      <property name="toolTip">
+       <string>Time sequence interval.</string>
+      </property>
       <property name="decimals">
        <number>1</number>
       </property>
@@ -182,6 +218,9 @@
     </item>
     <item row="2" column="8">
      <widget class="QDoubleSpinBox" name="fromSpinBox">
+      <property name="toolTip">
+       <string>Begin angle.</string>
+      </property>
       <property name="minimum">
        <double>-50.000000000000000</double>
       </property>
@@ -205,6 +244,9 @@
     </item>
     <item row="2" column="10">
      <widget class="QDoubleSpinBox" name="toSpinBox">
+      <property name="toolTip">
+       <string>End angle.</string>
+      </property>
       <property name="minimum">
        <double>-50.000000000000000</double>
       </property>
@@ -223,6 +265,9 @@
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
+      </property>
+      <property name="toolTip">
+       <string>FPS label.</string>
       </property>
       <property name="text">
        <string>current fps:</string>
@@ -247,6 +292,9 @@
         <height>0</height>
        </size>
       </property>
+      <property name="toolTip">
+       <string>Move 10 degrees counterclockwise</string>
+      </property>
       <property name="text">
        <string>&gt;10</string>
       </property>
@@ -259,6 +307,9 @@
         <width>30</width>
         <height>0</height>
        </size>
+      </property>
+      <property name="toolTip">
+       <string>Move 1 degree clockwise.</string>
       </property>
       <property name="text">
        <string>&lt;</string>
@@ -273,8 +324,14 @@
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
+      <property name="toolTip">
+       <string>Current motor position.</string>
+      </property>
       <property name="text">
-       <string>last position [°]</string>
+       <string>0</string>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
       </property>
      </widget>
     </item>
@@ -286,6 +343,9 @@
         <height>0</height>
        </size>
       </property>
+      <property name="toolTip">
+       <string>Move 1 degree counterclockwise.</string>
+      </property>
       <property name="text">
        <string>&gt;</string>
       </property>
@@ -293,6 +353,9 @@
     </item>
     <item row="2" column="14">
      <widget class="QDoubleSpinBox" name="posSpinBox">
+      <property name="toolTip">
+       <string>Move to this degree.</string>
+      </property>
       <property name="minimum">
        <double>-50.000000000000000</double>
       </property>
@@ -312,6 +375,9 @@
         <height>0</height>
        </size>
       </property>
+      <property name="toolTip">
+       <string>Move 10 degrees clockwise</string>
+      </property>
       <property name="text">
        <string>10&lt;</string>
       </property>
@@ -325,6 +391,9 @@
         <height>0</height>
        </size>
       </property>
+      <property name="toolTip">
+       <string>Stop motor movement.</string>
+      </property>
       <property name="text">
        <string>stop</string>
       </property>
@@ -332,6 +401,9 @@
     </item>
     <item row="0" column="13" colspan="2">
      <widget class="QPushButton" name="motButton">
+      <property name="toolTip">
+       <string>Establish connection with the motor.</string>
+      </property>
       <property name="text">
        <string>Mot Connect</string>
       </property>
@@ -352,11 +424,34 @@
     </item>
     <item row="4" column="2">
      <widget class="QRadioButton" name="radioButton">
+      <property name="toolTip">
+       <string/>
+      </property>
       <property name="text">
        <string/>
       </property>
       <property name="checkable">
        <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <widget class="QPushButton" name="connectButton">
+      <property name="toolTip">
+       <string>Establish connection with the framegrabber.</string>
+      </property>
+      <property name="text">
+       <string>cam connect</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="1">
+     <widget class="QSpinBox" name="numBox">
+      <property name="toolTip">
+       <string>Epitaxy No.</string>
+      </property>
+      <property name="maximum">
+       <number>9999</number>
       </property>
      </widget>
     </item>

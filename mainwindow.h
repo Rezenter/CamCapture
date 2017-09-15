@@ -63,10 +63,9 @@ private:
     QString inBuf;
     void newPos(double);
     bool seq = false;
-    QFile* out;
-    QTextStream* outStream;
     QDateTime now;
     QString lastDir = "";
+    QSettings *param;
 
 private slots:
     void liveShot();
@@ -76,11 +75,12 @@ private slots:
     void folderSelect();
     void setPath();
     void sequence();
-    void accuire(int, int, char*, int, int);
+    void accuire(QPixmap);
     void editing();
     void edited();
 
 public slots:
+    void saved();
     void closed();
     void error(QString);
     void in(QString);
