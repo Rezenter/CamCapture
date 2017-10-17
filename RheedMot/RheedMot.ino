@@ -5,7 +5,7 @@ long posEncoder=0;
 const int pin0=4;
 long posMotor=0,posMotorEnd=0,posReport=0;
 int pin=0; 
-boolean waitReport=0;
+unsigned long report = millis();
 //---------------------------------------------
 
 void setup() 
@@ -47,11 +47,11 @@ void loop()
     delayMicroseconds(2500);
     digitalWrite(pin0+pin, LOW);
     posMotor+=dir;
-  }
-  if (waitReport && (posMotor==posReport))
-  {
-    waitReport=0;
-    Serial.println(posMotor);
+  }else{
+    if(millis() - report >= 100){
+      Serial.println(posMotor);
+      report = millis();
+    }
   }
 }
 //---------------------------------------------
@@ -60,11 +60,8 @@ void loop()
     int cmd = Serial.readString().toInt();
     if (cmd != 0){
       posMotorEnd+=cmd; 
-      waitReport=1;
-      posReport=posMotorEnd;
     }else{ 
       posMotorEnd=posMotor;
-      Serial.println(posMotor);
     }
   }
 //---------------------------------------------

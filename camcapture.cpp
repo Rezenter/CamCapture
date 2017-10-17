@@ -116,9 +116,9 @@ void CamCapture::capture(QString filename){
                         data.append(&begin[YPos * pitch], linelen);
                     }
                 fi->imageRequestUnlock( requestNr );
-                pixMap.loadFromData(data, "BMP");
+                pixMap.loadFromData(data, "BMP", Qt::MonoOnly);
                 if(filename.length() != 0){ //save to file, if filename was passed to this function
-                    pixMap.save(path + filename + ".jpg", "JPG", 100);
+                    pixMap.save(path + filename + ".jpg", "JPG", 70);
                     emit saved();
                 }
                 emit captured(pixMap);

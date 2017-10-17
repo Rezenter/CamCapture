@@ -48,7 +48,7 @@ private:
     Device* curr;
     FunctionInterface* fi;
     QPixmap pixMap;
-    const int iMaxWaitTime_ms = 30;// Define the Image Result Timeout (The maximum time allowed for the Application
+    const int iMaxWaitTime_ms = 100;// Define the Image Result Timeout (The maximum time allowed for the Application
                                      // to wait for a Result). Infinity value:-1
                                      // USB 1.1 on an embedded system needs a large timeout for the first image.
 };

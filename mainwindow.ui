@@ -222,10 +222,10 @@
        <string>Begin angle.</string>
       </property>
       <property name="minimum">
-       <double>-50.000000000000000</double>
+       <double>-100.000000000000000</double>
       </property>
       <property name="maximum">
-       <double>50.000000000000000</double>
+       <double>100.000000000000000</double>
       </property>
       <property name="singleStep">
        <double>0.500000000000000</double>
@@ -248,10 +248,10 @@
        <string>End angle.</string>
       </property>
       <property name="minimum">
-       <double>-50.000000000000000</double>
+       <double>-100.000000000000000</double>
       </property>
       <property name="maximum">
-       <double>50.000000000000000</double>
+       <double>100.000000000000000</double>
       </property>
       <property name="singleStep">
        <double>0.500000000000000</double>
@@ -300,41 +300,6 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="13">
-     <widget class="QPushButton" name="lButton">
-      <property name="minimumSize">
-       <size>
-        <width>30</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="toolTip">
-       <string>Move 1 degree clockwise.</string>
-      </property>
-      <property name="text">
-       <string>&lt;</string>
-      </property>
-     </widget>
-    </item>
-    <item row="1" column="14">
-     <widget class="QLabel" name="posLabel">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="toolTip">
-       <string>Current motor position.</string>
-      </property>
-      <property name="text">
-       <string>0</string>
-      </property>
-      <property name="alignment">
-       <set>Qt::AlignCenter</set>
-      </property>
-     </widget>
-    </item>
     <item row="1" column="15">
      <widget class="QPushButton" name="rButton">
       <property name="minimumSize">
@@ -354,13 +319,13 @@
     <item row="2" column="14">
      <widget class="QDoubleSpinBox" name="posSpinBox">
       <property name="toolTip">
-       <string>Move to this degree.</string>
+       <string>Move to this degree. Also shows current position.</string>
       </property>
       <property name="minimum">
-       <double>-50.000000000000000</double>
+       <double>-100.000000000000000</double>
       </property>
       <property name="maximum">
-       <double>50.000000000000000</double>
+       <double>100.000000000000000</double>
       </property>
       <property name="singleStep">
        <double>0.500000000000000</double>
@@ -452,6 +417,22 @@
       </property>
       <property name="maximum">
        <number>9999</number>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="13">
+     <widget class="QPushButton" name="lButton">
+      <property name="minimumSize">
+       <size>
+        <width>30</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="toolTip">
+       <string>Move 1 degree clockwise.</string>
+      </property>
+      <property name="text">
+       <string>&lt;</string>
       </property>
      </widget>
     </item>

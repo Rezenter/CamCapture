@@ -21,7 +21,10 @@ void ComChatter::connect(QString name){
     QObject::connect(&port, SIGNAL(readyRead()), this, SLOT(read()));
     if (port.open(QIODevice::ReadWrite)) {
         if (port.isOpen()){
+            port.setDataTerminalReady(true);
+            port.waitForBytesWritten(1000);
             QString ping = "0";
+            port.setDataTerminalReady(false);
             port.write(ping.toLocal8Bit() + "\n");
         }else{
             emit error(port.errorString());

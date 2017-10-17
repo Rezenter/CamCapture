@@ -13,6 +13,11 @@
 #include "logger.h"
 #include <QCoreApplication>
 #include <QSettings>
+#include <QBrush>
+#include <QPen>
+#include <QMouseEvent>
+#include <QPainter>
+#include <QElapsedTimer>
 
 namespace Ui {
 class MainWindow;
@@ -44,7 +49,8 @@ private:
     bool timerOnline = false;
     QTimer *timer = new QTimer(this);
     QTimer *live = new QTimer(this);
-    qint64 prev = std::numeric_limits<qint64>::max();
+    qint64 prev[5];
+    int prevIndex = 0;
     QDateTime time;
     QPixmap curr;
     QString path = QCoreApplication::applicationDirPath();
@@ -66,6 +72,17 @@ private:
     QDateTime now;
     QString lastDir = "";
     QSettings *param;
+    QPen pen;
+    QBrush brush;
+    void mouseMoveEvent(QMouseEvent *);
+    int radius;
+    qreal eps;
+    void saveSettings();
+    QPoint center;
+    int prevPos;
+    QElapsedTimer fromBegin;
+    bool DEBUG = false;
+    bool LOG = false;
 
 private slots:
     void liveShot();

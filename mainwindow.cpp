@@ -1,19 +1,28 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#define DEBUG   true
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    log = new Logger();
-    log->print(path);
+    settings = new QSettings(path + "/settings.ini", QSettings::IniFormat);
+    LOG = settings->value("logging", false).toBool();
+    if(LOG){
+        DEBUG = settings->value("debug", false).toBool();
+        log = new Logger();
+        log->print(path);
+    }
     if(DEBUG){
         log->print("debug");
     }
-    setWindowTitle("Cam & motor control");
-    settings = new QSettings(path + "/settings.ini", QSettings::IniFormat);
+    resize(settings->value("windowSize", QSize(800, 600)).toSize());
+    move(settings->value("windowPos", QPoint(0, 0)).toPoint());
+    setWindowTitle(settings->value("windowTitle", "CamGui (corrupted .ini)").toString());
     coeff = settings->value("stepsInDegree", 20).toDouble();
+    ui->pathLine->setText(settings->value("lastPath", "C:").toString());
+    ui->pathLine->setStyleSheet("QLineEdit { background-color : yellow; }");
+    ui->numBox->setValue(settings->value("lastEpitaxy", 0000).toInt());
+    ui->numBox->setStyleSheet("QSpinBox { background-color : yellow; }");
     comThread = new QThread();
     port = new ComChatter();
     port->moveToThread(comThread);
@@ -72,8 +81,12 @@ MainWindow::MainWindow(QWidget *parent) :
     QObject::connect(ui->toSpinBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &MainWindow::editing);
     QObject::connect(ui->posSpinBox, static_cast<void(QDoubleSpinBox::*)(double)>(&QDoubleSpinBox::valueChanged), this, &MainWindow::editing);
     QObject::connect(ui->stopButton, &QPushButton::pressed, this, &MainWindow::stop);
+    ui->liveLable->setMouseTracking(true);
     emit savePath(ui->pathLine->text());
     setControlsEnabled(false);
+    center = settings->value("center", QPoint(0, 0)).toPoint();
+    radius = settings->value("radius", 10).toInt();
+    eps = settings->value("eps", 20).toReal();
     comThread->start();
 
 }
@@ -82,11 +95,18 @@ MainWindow::~MainWindow()
 {
     comThread->quit();
     comThread->requestInterruption();
-    log->print("QThread dead ? : ");
+    if(LOG){
+        log->print("QThread dead ? : ");
+    }
+    saveSettings();
     if(comThread->wait()){
-        log->print("True");
+        if(LOG){
+            log->print("True");
+        }
     }else{
-        log->print("False");
+        if(LOG){
+            log->print("False");
+        }
     }
     delete comThread;
     timer->stop();
@@ -96,7 +116,17 @@ MainWindow::~MainWindow()
     emit disconnect();
     delete ui;
     delete settings;
-    delete log;
+    if(LOG){
+        delete log;
+    }
+}
+
+void MainWindow::saveSettings(){
+    settings->setValue("lastPath", ui->pathLine->text());
+    settings->setValue("lastEpitaxy", ui->numBox->value());
+    settings->setValue("center", center);
+    settings->setValue("windowSize", this->size());
+    settings->setValue("windowPos", QPoint(this->x(), this->y()));
 }
 
 void MainWindow::connectionResult(bool res){
@@ -137,6 +167,7 @@ void MainWindow::folderSelect(){
     if(dir.length() != 0){
         ui->pathLine->setText(dir);
         setPath();
+        ui->pathLine->setStyleSheet("QLineEdit { background-color : white; }");
     }
 }
 
@@ -156,13 +187,15 @@ QString MainWindow::filename(){
     QString res = "v" + QString("%1").arg(ui->numBox->value(), 4, 10, QChar('0'));
     res += "-";
     res += QString("%1").arg(ui->seriesBox->value(), 2, 10, QChar('0'));
-    QString dir = ui->pathLine->text() + QString("%1").arg(ui->seriesBox->value(), 2, 10, QChar('0'));
-    if(!QDir(dir).exists() || lastDir != dir){
-        lastDir = dir;
+    QString dir = ui->pathLine->text() + "/" + res;
+    if(!QDir(dir).exists()){
         QDir().mkdir(dir);
+    }
+    if(lastDir != dir){
+        lastDir = dir;
         param = new QSettings(dir + "/" + res + ".param", QSettings::IniFormat);
         if(DEBUG){
-            log->print("param created " + res); //debug
+            log->print("param created " + res);
         }
     }
     emit savePath(dir);
@@ -198,18 +231,33 @@ void MainWindow::sequence(){
 
 void MainWindow::liveShot(){
     if(DEBUG){
-        log->print("liveShot ");
+        //log->print("liveShot ");
     }
     emit capture("");
 }
 
 void MainWindow::accuire(QPixmap pixMap){
     if(DEBUG){
-        log->print("accuire ");
+        //log->print("accuire ");
     }
     if(!pixMap.isNull()){
-            ui->fpsLabel->setText(QString::number(1000/(time.currentMSecsSinceEpoch() - prev)));
-            prev = time.currentMSecsSinceEpoch();
+            prev[prevIndex] = time.currentMSecsSinceEpoch();
+            if(prevIndex == 4){
+                prevIndex = 0;
+            }else{
+                prevIndex++;
+            }
+            qreal tmp = 0;
+            for(int i = 0; i < 5; i++){
+                tmp += prev[i];
+            }
+            QPainter painter(&pixMap);
+            painter.setRenderHint(QPainter::Antialiasing, true);
+            painter.setBrush(brush);
+            pen.setColor(QColor(250,0,0));
+            painter.setPen(pen);
+            painter.drawEllipse(center, radius, radius);
+            ui->fpsLabel->setText(QString::number((int)(1000/(time.currentMSecsSinceEpoch() - tmp/5))));
             ui->liveLable->setPixmap(pixMap);
             ui->radioButton->setChecked(!ui->radioButton->isChecked());
     }
@@ -234,6 +282,9 @@ void MainWindow::error(QString data){
 void MainWindow::in(QString data){
     inBuf += data;
     if(inBuf.endsWith("\r\n")){
+        if(DEBUG){
+            log->print("line finished = " + inBuf);
+        }
         inBuf.chop(2);
         if(inBuf.endsWith("connected", Qt::CaseInsensitive)){
              opened = true;
@@ -250,6 +301,10 @@ void MainWindow::in(QString data){
             }
         }
         inBuf = "";
+    }else{
+        if(DEBUG){
+            log->print("not finished: " + inBuf);
+        }
     }
 }
 
@@ -260,7 +315,9 @@ void MainWindow::motConnect(){
         opened = false;
         scanning = false;
     }else{
-        log->print("connecting to " + settings->value("portName", "COM1").toString());
+        if(LOG){
+            log->print("connecting to " + settings->value("portName", "COM1").toString());
+        }
         emit comConnect(settings->value("portName", "COM1").toString());
         pos = 0;
         ui->posSpinBox->setValue(0);
@@ -316,24 +373,43 @@ void MainWindow::setPos(){
 
 void MainWindow::scan(){
     if(!scanning && ui->fromSpinBox->value() != ui->toSpinBox->value()){
+        if(DEBUG){
+            log->print("scan   begin");
+        }
+        fromBegin.start();
         newPos(ui->fromSpinBox->value());
         scanning = true;
         setControlsEnabled(false);
         ui->seqButton->setEnabled(false);
     }else{
-        singleShot();
-        if(ui->fromSpinBox->value() < ui->toSpinBox->value()){
-            emit send(QString::number(d2s(ui->thetaStepSpinBox->value())));
-        }else if(ui->fromSpinBox->value() > ui->toSpinBox->value()){
-            emit send(QString::number(d2s(-ui->thetaStepSpinBox->value())));
+        if(DEBUG){
+            log->print("scan    make shot");
+        }
+        if(prevPos != pos){
+            prevPos = pos;
+            singleShot();
+            if(ui->fromSpinBox->value() < ui->toSpinBox->value()){
+                emit send(QString::number(d2s(ui->thetaStepSpinBox->value())));
+            }else if(ui->fromSpinBox->value() > ui->toSpinBox->value()){
+                emit send(QString::number(d2s(-ui->thetaStepSpinBox->value())));
+            }
+            if(DEBUG){
+                log->print("scan    moved");
+        }
         }
         if(ui->toSpinBox->value() == s2d(pos) ||
                 ((ui->fromSpinBox->value() < ui->toSpinBox->value()) && ui->toSpinBox->value() <= s2d(pos)) ||
                 ((ui->fromSpinBox->value() > ui->toSpinBox->value()) && ui->toSpinBox->value() >= s2d(pos))){
+            if(DEBUG){
+                log->print("scan    stopped, last shot");
+            }
             singleShot();
             scanning = false;
             setControlsEnabled(true);
             ui->seqButton->setEnabled(true);
+            if(DEBUG){
+                log->print("scan    finished");
+            }
         }
     }
 }
@@ -394,11 +470,17 @@ void MainWindow::edited(){
 }
 
 void MainWindow::stop(){
+    scanning = false;
+    seq = false;
     emit send(QString::number(0));
+    setControlsEnabled(true);
+    ui->seqButton->setEnabled(true);
 }
 
 void MainWindow::saved(){
-    log->print("saved");
+    if(LOG){
+        log->print("saved");
+    }
     QString name = "v" + QString("%1").arg(ui->numBox->value(), 4, 10, QChar('0'));
     name += "-";
     name += QString("%1").arg(ui->seriesBox->value(), 2, 10, QChar('0'));
@@ -407,30 +489,38 @@ void MainWindow::saved(){
     name += ".jpg";
     param->beginGroup(name);
         param->setValue("TimeStamp1", now.currentDateTime().toString("dd.MM.yyyy HH:mm:ss"));
-        param->setValue("timeStamp2", now.currentDateTime().toString("dd.MM.yyyy HH:mm:ss"));//fix
+        param->setValue("timeStamp2", fromBegin.elapsed());
         param->setValue("phi", settings->value("phiOffset", 0).toDouble());
-        param->setValue("th", ui->posLabel->text());
-        param->setValue("i0", 0); //to-do
-        param->setValue("j0", 0); //to-do
-        /*
-         * unused
+        param->setValue("th", ui->posSpinBox->value());
+        param->setValue("i0", center.x());
+        param->setValue("j0", center.y());
+        /* unused
         param->setValue("ISO", "");
         param->setValue("AV", "");
         param->setValue("TV", "");
         param->setValue("LBound", "");
         param->setValue("RBound", "");
         */
-        param->setValue("pixelSize", settings->value("pixelSize", 0).toDouble());//to-do: measure
-        param->setValue("distance", settings->value("distance", 0).toDouble());//to-do: measure
+        param->setValue("pixelSize", settings->value("pixelSize", 0).toDouble());
+        param->setValue("distance", settings->value("distance", 0).toDouble());
         param->setValue("Goniometer", "Rheed");
         param->setValue("Detector", "Panasoic");
-        param->setValue("Lambda", settings->value("lambda", 0).toDouble());//to-do: measure
+        param->setValue("Lambda", settings->value("lambda", 0).toDouble());
         param->setValue("RotateRawImage", settings->value("rotateImage", 0).toDouble());
         param->setValue("FlipRawImage", settings->value("flipImage", 0).toInt());
         param->setValue("SampleNo", ui->numBox->value());
         param->setValue("phiStart", 0);
         param->setValue("phiEnd", 0);
+        param->setValue("thStart", ui->fromSpinBox->value());
+        param->setValue("thEnd", ui->toSpinBox->value());
         param->setValue("timeSequence", seq);
         param->setValue("thetaScan", scanning);
     param->endGroup();
+}
+
+
+void MainWindow::mouseMoveEvent(QMouseEvent * event){
+    if(pow(eps, 2) >= (pow((center.x() - event->x() + ui->liveLable->x()), 2) + pow((center.y() - event->y() + ui->liveLable->y()), 2))){
+        center = QPoint(event->x() - ui->liveLable->x(), event->y() - ui->liveLable->y());
+    }
 }
